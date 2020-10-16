@@ -530,10 +530,10 @@ jobs:
         run: |
           $ref = $Env:GITHUB_REF
           $branch_name = $ref -replace "refs/heads/"
-          echo "{branch_name}={$branch_name}" >> $GITHUB_ENV
+          echo "{branch_name}={$branch_name}" >> $Env:GITHUB_ENV
 
           $ts = Get-Date -Format "yyyy-MM-dd-HHmm"
-          echo "{run_timestamp}={$ts}" >> $GITHUB_ENV
+          echo "{run_timestamp}={$ts}" >> $Env:GITHUB_ENV
         shell: powershell
 
       - name: Combine Integration Results
@@ -546,7 +546,7 @@ jobs:
       - name: Upload combined artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: intTestResults_${{ github.run_id }}
+          name: intTestResults_${{ github.actor }}_${{ env.branch_name }}_${{ env.run_timestamp }}
           path: ./all-integration-test-results
           if-no-files-found: error
 
