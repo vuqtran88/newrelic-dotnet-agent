@@ -496,7 +496,7 @@ jobs:
           }
 
           Write-Host "Run tests"
-          ${{ env.xunit_console }} ${{ env.integration_tests_dll }} -namespace NewRelic.Agent.IntegrationTests.${{ matrix.namespace }} -serialize -xmlv1 ${{ github.workspace }}/TestResults/${{ matrix.namespace }}_testResults.xml
+          ${{ env.xunit_console }} ${{ env.integration_tests_dll }} -namespace NewRelic.Agent.IntegrationTests.${{ matrix.namespace }} -parallel none -xmlv1 ${{ github.workspace }}/TestResults/${{ matrix.namespace }}_testResults.xml
           
           if ($Env:enhanced_logging) {
             Write-Host "Get HostableWebCore errors (if any)"
@@ -546,7 +546,7 @@ jobs:
       - name: Upload combined artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: intTestResults_${{ github.actor }}_${{ env.branch_name }}_${{ env.run_timestamp }}
+          name: intTestResults_${{ github.run_id }}
           path: ./all-integration-test-results
           if-no-files-found: error
 
