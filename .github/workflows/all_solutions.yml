@@ -4,6 +4,13 @@ name: .NET Agent All Solutions Build
 on:
   pull_request:
     branches: [ main ]
+  push:
+    branches: [ main ]
+      tags:
+      - refs/tags/v*.*.*      # v1.0.0
+      - refs/tags/v*.*.*-*    # v1.0.0-alpha
+      - refs/tags/*_v*.*.*    # SomePrefix_v1.0.0
+      - refs/tags/*_v*.*.*-*  # SomePrefix_v1.0.0-alpha
   workflow_dispatch:
 
 env:
