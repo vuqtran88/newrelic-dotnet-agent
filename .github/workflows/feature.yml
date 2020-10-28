@@ -23,13 +23,17 @@ jobs:
       run: |
         echo "agent_version=hello" >> $GITHUB_ENV
       shell: powershell
+    - name: get agent version within a step
+      run: |
+        echo ${{ env.agent_version }}
+      shell: powershell
       
   get_agent_validation:
     runs-on: windows-2019
     steps:
     - name: get agent version
       run: |
-        write-host "$agent_version"
+        echo ${{ env.agent_version }}
       shell: powershell
 
       
