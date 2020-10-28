@@ -11,7 +11,7 @@ on:
 env:
   scripts_path: ${{ github.workspace }}\build\scripts
   tools_path: ${{ github.workspace }}\build\Tools
-  agent_version: 8.0
+  agent_version: "8.0"
   DOTNET_NOLOGO: true
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
     - name: set agent version
       run: |
         # echo "agent_version=8.4" >> $GITHUB_ENV
-        echo "agent_version=8.4" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        echo "agent_version='8.4'" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       shell: powershell
       
   get_agent_validation:
