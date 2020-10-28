@@ -31,7 +31,8 @@ jobs:
       run: echo ${{ env.GITHUB_SHA_SHORT }}
       
   get_agent_validation:
-    runs-on: windows-2019
+    needs: set_agent_validation
+    runs-on: ubuntu-latest
     steps:
     - name: get agent version
       run: |
