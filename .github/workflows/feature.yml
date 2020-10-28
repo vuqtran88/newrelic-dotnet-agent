@@ -24,20 +24,20 @@ jobs:
       shell: powershell
     - name: get agent version within a step
       run: |
-        echo $agent_version
+        echo ${{ env.agent_version }}
       shell: powershell
     
     - name: Set env
       run: echo "GITHUB_SHA_SHORT=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
     - name: Test
-      run: echo $GITHUB_SHA_SHORT
+      run: echo ${{ env.GITHUB_SHA_SHORT }}
       
   get_agent_validation:
     runs-on: windows-2019
     steps:
     - name: get agent version
       run: |
-        echo $agent_version
+        echo ${{ env.agent_version }}
       shell: powershell
 
       
