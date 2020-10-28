@@ -11,6 +11,7 @@ on:
 env:
   scripts_path: ${{ github.workspace }}\build\scripts
   tools_path: ${{ github.workspace }}\build\Tools
+  agent_version: 8.0
   DOTNET_NOLOGO: true
 
 jobs:
