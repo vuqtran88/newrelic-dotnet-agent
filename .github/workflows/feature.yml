@@ -12,7 +12,6 @@ env:
   scripts_path: ${{ github.workspace }}\build\scripts
   tools_path: ${{ github.workspace }}\build\Tools
   DOTNET_NOLOGO: true
-  agent_version: ""
 
 jobs:
   
