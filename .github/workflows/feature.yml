@@ -15,28 +15,56 @@ env:
   agent_version: ""
 
 jobs:
-  
-  set_agent_validation:
-    runs-on: ubuntu-latest
-    steps:
-    - name: set agent version
-      run: |
-        echo "agent_version=hello" >> $GITHUB_ENV
-    - name: get agent version within a step
-      run: |
-        echo ${{ env.agent_version }}
-    
-    - name: Set env
-      run: echo "GITHUB_SHA_SHORT=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
-    - name: Test
-      run: echo ${{ env.GITHUB_SHA_SHORT }}
-      
-  get_agent_validation:
-    needs: set_agent_validation
-    runs-on: ubuntu-latest
-    steps:
-    - name: Test
-      run: |
-        run: echo ${{ env.GITHUB_SHA_SHORT }}
 
+  # This builds both FullAgent and MSIInstaller since MSIInstaller requires FullAgent artifacts.
+  build-test-fullagent-msi:
+    name: Build and Test FullAgent and MSIInstaller
+
+    runs-on: windows-2019
+
+    env:
+      fullagent_solution_path: ${{ github.workspace }}\FullAgent.sln
+      msi_solution_path: ${{ github.workspace }}\src\Agent\MsiInstaller\MsiInstaller.sln
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.1
+
+    - name: Setup VSTest Path
+      uses: darenm/Setup-VSTest@v1
+    
+    - name: Install dependencies for FullAgent.sln
+      run: |
+        Write-Host ${{ env.tools_path }}\nuget.exe restore ${{ env.fullagent_solution_path }} -NoCache -Source `"https://www.nuget.org/api/v2`"
+        ${{ env.tools_path }}\nuget.exe restore ${{ env.fullagent_solution_path }} -NoCache -Source "https://www.nuget.org/api/v2"
+      shell: powershell
+
+    - name: Install dependencies for MsiInstaller.sln
+      run: |
+        Write-Host ${{ env.tools_path }}\nuget.exe restore ${{ env.msi_solution_path }} -NoCache -Source `"https://www.nuget.org/api/v2`"
+        ${{ env.tools_path }}\nuget.exe restore ${{ env.msi_solution_path }} -NoCache -Source "https://www.nuget.org/api/v2"
+      shell: powershell
+    
+    - name: Build FullAgent.sln
+      run: |
+        Write-Host "MSBuild.exe -m -p:Configuration=Release -p:AllowUnsafeBlocks=true ${{ env.fullagent_solution_path }}"
+        MSBuild.exe -m -p:Configuration=Release -p:AllowUnsafeBlocks=true ${{ env.fullagent_solution_path }}
+      shell: powershell
       
+    - name: Create agent version text
+      run: |
+        $agentVersion = (Get-Item "${{ github.workspace }}\src\_build\AnyCPU-Release\NewRelic.Agent.Core\net45\NewRelic.Agent.Core.dll").VersionInfo.FileVersion
+        write-host $agent_version | Out-File -FilePath .\agent_version.txt
+      shell: powershell
+      
+    - name: Save agent version test as an artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: agent version text
+        path: ${{ github.workspace }}\agent_version.txt
+    
