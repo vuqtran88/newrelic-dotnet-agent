@@ -35,8 +35,8 @@ jobs:
     needs: set_agent_validation
     runs-on: ubuntu-latest
     steps:
-    - name: get agent version
+    - name: Test
       run: |
-        echo ${{ env.agent_version }}
+        run: echo ${{ env.GITHUB_SHA_SHORT }}
 
       
