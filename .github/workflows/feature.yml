@@ -59,7 +59,8 @@ jobs:
     - name: Create agent version text
       run: |
         $agentVersion = (Get-Item "${{ github.workspace }}\src\_build\AnyCPU-Release\NewRelic.Agent.Core\net45\NewRelic.Agent.Core.dll").VersionInfo.FileVersion
-        write-host $agent_version | Out-File -FilePath .\agent_version.txt
+        write-host $agent_version
+        $agent_version | Out-File -FilePath .\agent_version.txt
       shell: powershell
       
     - name: Save agent version test as an artifact
