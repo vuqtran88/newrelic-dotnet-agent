@@ -258,8 +258,8 @@ jobs:
 
       - name: Build debian package
         run: |
-          $agentVersion = cat ${{ github.workspace }}\agent_version.txt
-          Write-Host $agentVersion
-        shell: powershell
+          agentVersion = cat ${{ github.workspace }}/agent_version.txt
+          echo $agentVersion
+        shell: bash
 
 
