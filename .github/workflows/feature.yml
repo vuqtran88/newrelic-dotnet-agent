@@ -146,8 +146,8 @@ jobs:
 
       - name: Build debian package
         run: |
-          agentVersion = cat ${{ github.workspace }}/agent_version.txt
-          echo $agentVersion
+          agent_version = $(cat ${{ github.workspace }}/agent_version.txt)
+          echo "$agent_version"
         shell: bash
 
 
