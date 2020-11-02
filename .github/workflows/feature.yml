@@ -25,7 +25,6 @@ jobs:
 
   # This builds both FullAgent and MSIInstaller since MSIInstaller requires FullAgent artifacts.
   build-test-fullagent-msi:
-    needs: [ build-windows-profiler, build-linux-profiler ]
     name: Build and Test FullAgent and MSIInstaller
     runs-on: windows-2019
 
@@ -131,7 +130,7 @@ jobs:
           if-no-files-found: error
 
   build-linux-deb-package:
-    needs: cancel-previous-workflow-runs
+    needs: build-test-fullagent-msi
     if: ${{ always() }}
     name: Build Debian package
     runs-on: ubuntu-18.04
