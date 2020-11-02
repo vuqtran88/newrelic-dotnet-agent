@@ -43,20 +43,6 @@ jobs:
 
       - name: Setup VSTest Path
         uses: darenm/Setup-VSTest@v1
-
-      - name: Clean out _profilerBuild directory
-        run: |
-          Remove-Item -Path "${{ github.workspace }}\src\Agent\_profilerBuild\*.*" -Force -ErrorAction SilentlyContinue
-          Remove-Item -Path "${{ github.workspace }}\src\Agent\_profilerBuild\x64-Release" -Recurse -Force  -ErrorAction SilentlyContinue
-          Remove-Item -Path "${{ github.workspace }}\src\Agent\_profilerBuild\x86-Release" -Recurse -Force  -ErrorAction SilentlyContinue
-          Remove-Item -Path "${{ github.workspace }}\src\Agent\_profilerBuild\linux-release" -Recurse -Force  -ErrorAction SilentlyContinue
-        shell: powershell
-
-      - name: Download Profiler Artifacts Before Agent Build
-        uses: actions/download-artifact@v2
-        with:
-          name: profiler
-          path: ${{ github.workspace }}/src/Agent/_profilerBuild/
       
       - name: Install dependencies for FullAgent.sln
         run: |
