@@ -301,6 +301,56 @@ jobs:
           path: ${{ github.workspace }}\TestResults
           if-no-files-found: error
 
+  build-linux-deb-package:
+    needs: build-test-fullagent-msi
+    if: ${{ always() }}
+    name: Build Debian package
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+        
+      - name: Download Agent Home Folders
+        uses: actions/download-artifact@v2
+        with:
+          name: homefolders
+          path: src/Agent
+
+      - name: Download _build Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: build-folder-artifacts
+          path: src/_build
+
+      - name: Download agent_version.txt
+        uses: actions/download-artifact@v2
+        with:
+          name: agent-version
+          path: ${{ github.workspace }}
+
+      - name: Build debian package
+        run: |
+          sudo apt install dos2unix -y
+          dos2unix ${{ github.workspace }}/agent_version.txt
+          agent_version=$(< ${{ github.workspace }}/agent_version.txt)
+          agent_version=${agent_version%.*}
+          agent_version+=".0"
+          echo "$agent_version"
+          cd ${{ github.workspace }}/build/Linux
+          docker-compose build
+          docker-compose run -e AGENT_VERSION=$agent_version build_deb
+        shell: bash
+        
+      - name: Archive Debian Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: deb-artifacts
+          path: ${{ github.workspace }}/src/_build/CoreArtifacts/*.deb
+          if-no-files-found: error
+
   build-integration-tests:
     needs: build-test-fullagent-msi
     name: Build IntegrationTests
