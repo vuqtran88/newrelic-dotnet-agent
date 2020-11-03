@@ -148,6 +148,7 @@ jobs:
       - name: Build debian package
         run: |
           agent_version=$(< ${{ github.workspace }}/agent_version.txt)
+          agent_version=${agent_version%.*}
           echo "$agent_version"
           cd ${{ github.workspace }}/build/Linux
           docker-compose build
