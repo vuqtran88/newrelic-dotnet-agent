@@ -149,11 +149,17 @@ jobs:
         run: |
           agent_version=$(< ${{ github.workspace }}/agent_version.txt)
           agent_version=${agent_version%.*}
+          agent_version+=".0"
           echo "$agent_version"
           cd ${{ github.workspace }}/build/Linux
           docker-compose build
           docker-compose run -e AGENT_VERSION=$agent_version build_deb
-          
         shell: bash
-
+        
+      - name: Archive Debian Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: deb-artifacts
+          path: ${{ github.workspace }}/src/_build/CoreArtifacts/*.deb
+          if-no-files-found: error
 
