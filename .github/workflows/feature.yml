@@ -121,11 +121,12 @@ jobs:
     name: Build Debian package
     runs-on: ubuntu-18.04
 
-    env:
-      profiler_path: ${{ github.workspace }}/src/Agent/NewRelic/Profiler
-      #<other env vars here>
-
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+        
       - name: Download Agent Home Folders
         uses: actions/download-artifact@v2
         with:
@@ -146,8 +147,12 @@ jobs:
 
       - name: Build debian package
         run: |
-          agent_version = $(< ${{ github.workspace }}/agent_version.txt)
+          agent_version=$(< ${{ github.workspace }}/agent_version.txt)
           echo "$agent_version"
+          cd ${{ github.workspace }}/build/Linux
+          docker-compose build
+          docker-compose run -e AGENT_VERSION=$agent_version build_deb
+          
         shell: bash
 
 
