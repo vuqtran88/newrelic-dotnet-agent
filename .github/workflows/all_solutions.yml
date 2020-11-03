@@ -331,7 +331,7 @@ jobs:
           name: agent-version
           path: ${{ github.workspace }}
 
-      - name: Build debian package
+      - name: Build debian packages
         run: |
           sudo apt install dos2unix -y
           dos2unix ${{ github.workspace }}/agent_version.txt
@@ -714,8 +714,14 @@ jobs:
       - name: Download NewRelic.OpenTracing.AmazonLambda.Tracer
         uses: actions/download-artifact@v2
         with:
-          name: NewRelic.OpenTracing.AmazonLambda.Tracer
+          name: deb-artifacts
           path: src/AwsLambda/AwsLambdaOpenTracer/bin/Release/netstandard2.0-ILRepacked
+      
+      - name: Download Debian package artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: NewRelic.OpenTracing.AmazonLambda.Tracer
+          path: ${{ github.workspace }}/src/_build/CoreArtifacts
 
       - name: Run ArtifactBuilder
         run: |
