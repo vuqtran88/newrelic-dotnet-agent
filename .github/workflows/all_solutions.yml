@@ -348,7 +348,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: deb-artifacts
-          path: ${{ github.workspace }}/src/_build/CoreArtifacts/*.deb
+          path: ${{ github.workspace }}/src/_build/CoreArtifacts
           if-no-files-found: error
 
   build-integration-tests:
@@ -714,13 +714,13 @@ jobs:
       - name: Download NewRelic.OpenTracing.AmazonLambda.Tracer
         uses: actions/download-artifact@v2
         with:
-          name: deb-artifacts
+          name: NewRelic.OpenTracing.AmazonLambda.Tracer
           path: src/AwsLambda/AwsLambdaOpenTracer/bin/Release/netstandard2.0-ILRepacked
       
       - name: Download Debian package artifacts
         uses: actions/download-artifact@v2
         with:
-          name: NewRelic.OpenTracing.AmazonLambda.Tracer
+          name: deb-artifacts
           path: ${{ github.workspace }}/src/_build/CoreArtifacts
 
       - name: Run ArtifactBuilder
