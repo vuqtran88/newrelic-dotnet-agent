@@ -628,6 +628,7 @@ jobs:
 
   create-package-rpm:
     needs: build-test-fullagent-msi
+    if: ${{ github.event.release }}
     name: Create RPM Package
     runs-on: ubuntu-18.04
 
@@ -676,6 +677,8 @@ jobs:
 
   create-package-deb:
     needs: build-test-fullagent-msi
+    if: ${{ github.event.release }}
+
     name: Create Debian package
     runs-on: ubuntu-18.04
 
@@ -723,6 +726,7 @@ jobs:
 
   run-artifactbuilder:
     needs: [ create-package-rpm, create-package-deb ]
+    if: ${{ github.event.release }}
     name: Run ArtifactBuilder
     runs-on: windows-2019
 
