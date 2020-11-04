@@ -628,7 +628,6 @@ jobs:
 
   create-package-rpm:
     needs: build-test-fullagent-msi
-    if: ${{ github.event.release }}
     name: Create RPM Package
     runs-on: ubuntu-18.04
 
