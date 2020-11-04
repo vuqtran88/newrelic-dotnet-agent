@@ -252,32 +252,43 @@ jobs:
           # ${{ env.scripts_path }}\DotNet-Agent-CI-UnitTests.ps1
           Write-Host "Creating TestResults directory to temporarily get around nunit limitation"
           mkdir ${{ github.workspace }}\TestResults
+
           $testDllPatterns = @('*Tests.dll', '*Test.dll', '*Test.Legacy.dll')
+
           Write-Host "Finding files for Framework NUnit tests"
           $frameworkTestPaths = @('Tests\Agent\UnitTests', 'Tests\NewRelic.Core.Tests')
           $frameworkTestFileNames = (Get-ChildItem -Recurse -Path $frameworkTestPaths -Include $testDllPatterns | Where-Object { !$_.FullName.Contains('obj\Release') } | Select Name -Unique)
           $frameworkFiles = (Get-ChildItem -Recurse -Path $frameworkTestPaths -Include $testDllPatterns | Where-Object { !$_.FullName.Contains('obj\Release')  })
+
           Write-Host "Building file list for Framework NUnit tests"
           $frameworkUnitTestPaths = @()
           for ($i = 0; $i -lt $frameworkTestFileNames.Length; $i++)
           { $frameworkFiles | ForEach-Object { if ($_.Name -eq $frameworkTestFileNames[$i].Name) { $frameworkUnitTestPaths += $_.FullName; Continue } } }
+
           $frameworkUnitTestPaths | ForEach-Object { $_ }
           Write-Host "Executing: vstest.console.exe " $frameworkUnitTestPaths " --parallel --logger:'html;LogFileName=agent-results.html'"
           vstest.console.exe $frameworkUnitTestPaths --parallel --logger:"html;LogFileName=agent-results.html"
           # & '.\Build\Tools\NUnit-Console\nunit3-console.exe ' $frameworkUnitTestPaths '--result=TestResults\NUnit2-results.xml;format=nunit2'
+
           if ($LastExitCode -ne 0)
           { exit $LastExitCode }
+
           Write-Host "Finding files for .NET Core NUnit tests"
           $netCoreTestFileNames = (Get-ChildItem -Recurse -Path 'Tests\AwsLambda\UnitTests' -Include $testDllPatterns | Where-Object { !$_.FullName.Contains('obj\Release') } | Select Name -Unique)
           $netCoreFiles = (Get-ChildItem -Recurse -Path 'Tests\AwsLambda\UnitTests' -Include $testDllPatterns | Where-Object { !$_.FullName.Contains('obj\Release')  })
+
           Write-Host "Building file list for .NET Core NUnit tests"
           $netCoreUnitTestPaths = @()
+
           for ($i = 0; $i -lt $netCoreTestFileNames.Length; $i++)
           { $netCoreFiles | ForEach-Object { if ($_.Name -eq $netCoreTestFileNames[$i].Name) { $netCoreUnitTestPaths += $_.FullName; Continue } } }
+
           Write-Host "Executing .NET Core NUnit Tests:"
           $netCoreUnitTestPaths | ForEach-Object { $_ }
+
           Write-Host "Executing: dotnet test " $netCoreUnitTestPaths " --parallel --logger:'html;LogFileName=lambda-results.html'"
           dotnet test $netCoreUnitTestPaths --parallel --logger:"html;LogFileName=lambda-results.html"
+
           if ($LastExitCode -ne 0)
           { exit $LastExitCode }
         shell: powershell
@@ -457,12 +468,14 @@ jobs:
             Write-Host "List ports in use"
             netstat -no  
           }
+
           Write-Host "Run tests"
           ${{ env.xunit_console }} ${{ env.integration_tests_dll }} -namespace NewRelic.Agent.IntegrationTests.${{ matrix.namespace }} -parallel none -xml C:\IntegrationTestWorkingDirectory\TestResults\${{ matrix.namespace }}_testResults.xml
           
           if ($Env:enhanced_logging -eq $True) {
             Write-Host "Get HostableWebCore errors (if any)"
             Get-EventLog -LogName Application -Source HostableWebCore -ErrorAction:Ignore
+
             Write-Host "Get .NET Runtime errors (if any)"
             Get-EventLog -LogName Application -Source ".NET Runtime" -EntryType "Error","Warning" -ErrorAction:Ignore  
           }
@@ -562,6 +575,7 @@ jobs:
           Enable-WindowsOptionalFeature -Online -FeatureName MSMQ-Server -All
           Enable-WindowsOptionalFeature -Online -FeatureName MSMQ-HTTP -All
           Enable-WindowsOptionalFeature -Online -FeatureName MSMQ-Triggers -All
+
           if ("${{ matrix.namespace }}" -eq "MsSql") {
             Write-Host "Installing MSSQL CLI"
             msiexec /i "${{ github.workspace }}\build\Tools\sqlncli.msi" IACCEPTSQLNCLILICENSETERMS=YES /quiet /qn /norestart
@@ -582,10 +596,13 @@ jobs:
             Write-Host "List ports in use"
             netstat -no  
           }
+
           ${{ env.xunit_console }} ${{ env.unbounded_tests_dll }} -namespace NewRelic.Agent.UnboundedIntegrationTests.${{ matrix.namespace }} -parallel none -xml C:\IntegrationTestWorkingDirectory\TestResults\${{ matrix.namespace }}_testResults.xml
+
           if ($Env:enhanced_logging -eq $True) {
             Write-Host "Get HostableWebCore errors (if any)"
             Get-EventLog -LogName Application -Source HostableWebCore -ErrorAction:Ignore
+
             Write-Host "Get .NET Runtime errors (if any)"
             Get-EventLog -LogName Application -Source ".NET Runtime" -EntryType "Error","Warning" -ErrorAction:Ignore  
           }
@@ -609,8 +626,9 @@ jobs:
           path: C:\IntegrationTestWorkingDirectory\TestResults\**\*TestResults.xml
           if-no-files-found: error
 
-  create-linux-packages:
+  create-package-rpm:
     needs: build-test-fullagent-msi
+    if: ${{ github.event.release }}
     name: Create RPM Package
     runs-on: ubuntu-18.04
 
@@ -646,7 +664,6 @@ jobs:
           agentVersion=${agentVersion/$'\r\n\t'}
           cd ${{ github.workspace }}/build/Linux
           docker-compose build
-          docker-compose run -e AGENT_VERSION=$agentVersion build_deb
           docker-compose run -e AGENT_VERSION=$agentVersion build_rpm
           #docker-compose run -e AGENT_VERSION=$agentVersion -e GPG_KEYS=/keys/gpg.tar.bz2 build_rpm
         shell: bash
@@ -658,8 +675,58 @@ jobs:
           path: ${{ github.workspace }}/src/_build
           if-no-files-found: error
 
+  create-package-deb:
+    needs: build-test-fullagent-msi
+    if: ${{ github.event.release }}
+    name: Create Debian package
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+        
+      - name: Download Agent Home Folders
+        uses: actions/download-artifact@v2
+        with:
+          name: homefolders
+          path: src/Agent
+
+      - name: Download _build Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: build-folder-artifacts
+          path: src/_build
+
+      - name: Download agent_version.txt
+        uses: actions/download-artifact@v2
+        with:
+          name: agent-version
+          path: ${{ github.workspace }}
+
+      - name: Build debian package
+        run: |
+          sudo apt install dos2unix -y
+          dos2unix ${{ github.workspace }}/agent_version.txt
+          agentVersion=$(< ${{ github.workspace }}/agent_version.txt)
+          agentVersion=${agentVersion%.*}
+          agentVersion+=".0"
+          cd ${{ github.workspace }}/build/Linux
+          docker-compose build
+          docker-compose run -e AGENT_VERSION=$agentVersion build_deb
+        shell: bash
+        
+      - name: Archive Package Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-folder-artifacts
+          path: ${{ github.workspace }}/src/_build
+          if-no-files-found: error
+
   run-artifactbuilder:
-    needs: [ create-linux-packages ]
+    needs: [ create-package-rpm ]
+    if: ${{ github.event.release }}
     name: Run ArtifactBuilder
     runs-on: windows-2019
 
