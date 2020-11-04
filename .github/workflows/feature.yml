@@ -677,7 +677,6 @@ jobs:
 
   create-package-deb:
     needs: build-test-fullagent-msi
-    if: ${{ github.event.release }}
     name: Create Debian package
     runs-on: ubuntu-18.04
 
@@ -725,8 +724,7 @@ jobs:
           if-no-files-found: error
 
   run-artifactbuilder:
-    needs: [ create-package-rpm ]
-    if: ${{ github.event.release }}
+    needs: [ create-package-rpm, create-package-deb ]
     name: Run ArtifactBuilder
     runs-on: windows-2019
 
